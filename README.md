@@ -1,1 +1,1 @@
-# Studen-Initiated Action Advising via Advice Novelty
+# Student-Initiated Action Advising via Advice Novelty
