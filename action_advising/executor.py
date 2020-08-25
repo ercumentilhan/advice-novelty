@@ -156,9 +156,6 @@ class Executor:
         if self.config['save_models']:
             os.makedirs(self.save_model_path, exist_ok=True)
 
-        #if self.config['dump_replay_memory']:
-        #    os.makedirs(self.save_replay_memory_path, exist_ok=True)
-
         os.makedirs(self.save_videos_path, exist_ok=True)
         os.makedirs(self.save_data_path, exist_ok=True)
 
@@ -214,8 +211,6 @@ class Executor:
         # --------------------------------------------------------------------------------------------------------------
         # Setup actor agent
         self.config['actor_id'] = self.run_id
-
-
 
         if self.config['dqn_type'] == EGREEDY_DQN:
             self.actor_agent = EpsilonGreedyDQN(self.config['actor_id'], self.config, self.session,
@@ -357,6 +352,10 @@ class Executor:
                 self.stats.advices_taken += 1
                 self.stats.advices_taken_cumulative += 1
 
+                # Budget is 0, detach RND model to prevent further updates for computational efficiency
+                if self.action_advising_method == 'state_novelty' and self.action_advising_budget == 0:
+                    self.actor_agent.rnd_model = None
+
                 # Teacher action
                 if self.config['env_type'] == GRIDWORLD:
                     action = self.env.optimal_action()
@@ -387,35 +386,18 @@ class Executor:
                 reward, done = self.env.act(action)
                 obs_next = self.env.state().astype(dtype=np.float32)
 
-            # transition = {
-            #     'obs': obs,
-            #     'action': action,
-            #     'reward': reward,
-            #     'obs_next': obs_next,
-            #     'done': done
-            # }
-
-            #td_error = self.student_agent.get_td_error(transition)
-
             if render:
                 self.obs_images.append(self.render(self.env))
 
-            #self.episode_error_in += td_error
             self.episode_reward += reward
             self.episode_duration += 1
 
-            #self.steps_error_in += td_error
             self.steps_reward += reward
             self.stats.n_env_steps += 1
 
             if reward > 0 and reward_is_seen is False:
                 reward_is_seen = True
                 print(">>> Reward is seen at ", self.stats.n_episodes, "|", self.episode_duration)
-
-            #if source == 1:
-            #    if self.rm_regulation_method == 'rnd':
-            #        self.actor_agent_rnd.train_model(obs, loss_id=0, is_batch=False, normalize=True)
-
 
             # ----------------------------------------------------------------------------------------------------------
             # Feedback
