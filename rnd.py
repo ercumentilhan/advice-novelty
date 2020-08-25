@@ -17,7 +17,6 @@ class RND(object):
         self.config['env_obs_form'] = config['env_obs_form']
         self.config['experiment_setup'] = config['experiment_setup']
         self.config['n_training_frames'] = config['n_training_frames']
-        self.config['demonstration_replay'] = config['demonstration_replay']
 
         # Hyperparameters
         self.config['rnd_learning_rate'] = lr
